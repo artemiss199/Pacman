@@ -8,4 +8,6 @@ public abstract class MovableObject extends GameObject {
         this.currentDirection = Direction.NONE;
     }
     public Direction getDirection() { return currentDirection; }
+    // forcing subclasses to define their own movement logic
+    public abstract void update(Maze maze, ScoreManager scoreManager);
 }
