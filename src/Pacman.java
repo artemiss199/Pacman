@@ -12,6 +12,10 @@ public class Pacman extends MovableObject {
 
     @Override
     public void update(Maze maze, ScoreManager scoreManager) {
+        if (nextDirection == Direction.NONE) {
+            return; // skip
+        }
+
         int nextX = x;
         int nextY = y;
 
