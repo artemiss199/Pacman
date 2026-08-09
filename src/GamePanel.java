@@ -10,11 +10,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private Game game;
     private Timer timer;
     private final int TILE_SIZE = 32; // Size of each grid square in pixels
+    private final GameWindow window;
 
-    public GamePanel() {
+    public GamePanel(GameWindow window) {
         this.setFocusable(true); // Allows the panel to receive keyboard input
         this.setBackground(Color.BLACK);
         this.addKeyListener(this);
+        this.window = window;
+
         this.game = new Game("level1.txt");
         this.timer = new Timer(150, this);
         this.timer.start();
@@ -94,6 +97,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             game.getPacman().setNextDirection(Direction.RIGHT);
         } else if (key == KeyEvent.VK_ESCAPE) {
             System.exit(0); // Requirement 2b: Leaving the app
+        }
+
+        else if (key == KeyEvent.VK_R) {
+            // restart the game by  overwriting the old game object with a new one
+            this.game = new Game("level1.txt");
+        }
+
+        else if (key == KeyEvent.VK_M) {
+            this.timer.stop();
+            window.showMainMenu();
         }
     }
     @Override

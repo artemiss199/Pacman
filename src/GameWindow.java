@@ -22,8 +22,9 @@ public class GameWindow extends JFrame {
 
     public void startGame() {
         this.getContentPane().removeAll();
-        GamePanel gamePanel = new GamePanel();
+        GamePanel gamePanel = new GamePanel(this);
         this.add(gamePanel);
+
         this.revalidate();
         this.repaint();
         gamePanel.requestFocus();
