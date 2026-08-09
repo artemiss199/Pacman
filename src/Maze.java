@@ -7,8 +7,8 @@ public class Maze {
     private List<Pellet> pellets;
 
     public Maze(String filename) {
-        loadMap(filename);
         pellets = new ArrayList<>();
+        loadMap(filename);
     }
 
     private void loadMap(String filename) {
