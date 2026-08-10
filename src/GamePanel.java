@@ -5,22 +5,71 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 
+// to add assets
+import javax.imageio.ImageIO;
+import java.io.File;
+import java.awt.Image;
+
 // extends JPanel, implements interfaces for input and looping
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
+
+    private Image blinkyImg, pinkyImg, frightenedImg;
+    private Image dotImg, powerPelletImg;
+    private Image[][] pacmanImgs; // 2D array: [direction][animation_frame]
+    private int animTick = 0; // Used to cycle through 1.png, 2.png, 3.png
+
     private Game game;
     private Timer timer;
     private final int TILE_SIZE = 32; // Size of each grid square in pixels
     private final GameWindow window;
 
+    // Construcctor
     public GamePanel(GameWindow window) {
         this.setFocusable(true); // Allows the panel to receive keyboard input
         this.setBackground(Color.BLACK);
         this.addKeyListener(this);
         this.window = window;
 
+        loadImages();
+
         this.game = new Game("level1.txt");
         this.timer = new Timer(150, this);
         this.timer.start();
+    }
+
+
+    private void loadImages() {
+        try {
+            // Load Ghosts
+            blinkyImg = ImageIO.read(new File("Assets/pacman-art/ghosts/blinky.png"));
+            pinkyImg = ImageIO.read(new File("Assets/pacman-art/ghosts/pinky.png"));
+            frightenedImg = ImageIO.read(new File("Assets/pacman-art/ghosts/blue_ghost.png"));
+
+            // Load Items (Using Apple for Power Pellet)
+            dotImg = ImageIO.read(new File("Assets/pacman-art/other/dot.png"));
+            powerPelletImg = ImageIO.read(new File("Assets/pacman-art/other/apple.png"));
+
+            // Load Pac-Man Animation Frames (4 directions, 3 frames each)
+            pacmanImgs = new Image[4][3];
+            String[] dirs = {"up", "down", "left", "right"};
+
+            for (int d = 0; d < 4; d++) {
+                for (int f = 1; f <= 3; f++) {
+                    String path = "Assets/pacman-art/pacman-" + dirs[d] + "/" + f + ".png";
+                    pacmanImgs[d][f-1] = ImageIO.read(new File(path));
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Failed to load images. Check your folder paths!");
+            e.printStackTrace();
+        }
+    }
+
+    private int getDirIndex(Direction d) {
+        if (d == Direction.UP) return 0;
+        if (d == Direction.DOWN) return 1;
+        if (d == Direction.LEFT) return 2;
+        return 3;
     }
 
     @Override
@@ -39,28 +88,37 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
 
         // 2. Draw Pellets
-        g.setColor(Color.WHITE);
         for (Pellet p : game.getMaze().getPellets()) {
             if (p.isActive()) {
-                int size = p.isPowerPellet() ? 16 : 6;
-                int offset = (TILE_SIZE - size) / 2;
-                g.fillOval((p.getX() * TILE_SIZE) + offset, (p.getY() * TILE_SIZE) + offset, size, size);
+                Image imgToDraw = p.isPowerPellet() ? powerPelletImg : dotImg;
+                g.drawImage(imgToDraw, p.getX() * TILE_SIZE, p.getY() * TILE_SIZE,
+                        TILE_SIZE, TILE_SIZE, null);
             }
         }
 
         // 3. Draw Pacman
-        g.setColor(Color.YELLOW);
-        g.fillArc(game.getPacman().getX() * TILE_SIZE, game.getPacman().getY() * TILE_SIZE,
-                TILE_SIZE, TILE_SIZE, 45, 270);
+        int dirIdx = getDirIndex(game.getPacman().getDirection());
+        int frameIdx = animTick % 3; // Loops between 0, 1, and 2
+
+        g.drawImage(pacmanImgs[dirIdx][frameIdx],
+                game.getPacman().getX() * TILE_SIZE,
+                game.getPacman().getY() * TILE_SIZE,
+                TILE_SIZE, TILE_SIZE, null);
 
         // 4. Draw Ghosts
         for (Ghost ghost : game.getGhosts()) {
+            Image ghostImg = blinkyImg; // Default
+
             if (ghost.getState() == GhostState.FRIGHTENED) {
-                g.setColor(Color.CYAN);
-            } else {
-                g.setColor(ghost.getColorName().equals("RED") ? Color.RED : Color.PINK);
+                ghostImg = frightenedImg;
+            } else if (ghost.getColorName().equals("PINK")) {
+                ghostImg = pinkyImg;
             }
-            g.fillRect(ghost.getX() * TILE_SIZE, ghost.getY() * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+
+            g.drawImage(ghostImg,
+                    ghost.getX() * TILE_SIZE,
+                    ghost.getY() * TILE_SIZE,
+                    TILE_SIZE, TILE_SIZE, null);
         }
 
         g.setColor(Color.WHITE);
@@ -70,7 +128,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         if (game.isGameOver()) {
             g.setColor(Color.RED);
             g.setFont(new Font("Arial", Font.BOLD, 40));
-            g.drawString("GAME OVER", 100, 200);
+            g.drawString("Wasted", 300, 200);
         }
     }
 
@@ -78,7 +136,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!game.isGameOver()) {
-            game.tick(); // Update backend logic
+            game.tick();
+            animTick++;
         }
         repaint(); // Force paintComponent to run again with new coordinates
     }

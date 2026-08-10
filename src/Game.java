@@ -25,12 +25,16 @@ public class Game {
 
         // 1. Update Entities
         pacman.update(maze, scoreManager);
+
+        checkCollisions();
+        if (isGameOver) return;
+
         for (Ghost ghost : ghosts) {
             ghost.update(maze, scoreManager);
         }
 
         // 2. Check Collisions (Requirement 7)
-        checkCollisions(); // updates powerPelletTimer on collision with powerPellet
+        checkCollisions();// updates powerPelletTimer on collision with powerPellet
 
         if (powerPelletTimer > 0) {
             powerPelletTimer--;
