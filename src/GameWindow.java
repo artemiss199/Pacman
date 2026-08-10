@@ -24,9 +24,9 @@ public class GameWindow extends JFrame {
         this.repaint();
     }
 
-    public void startGame(String levelFile) {
+    public void startGame(String levelFile, String difficulty) {
         this.getContentPane().removeAll();
-        GamePanel gamePanel = new GamePanel(this, levelFile);
+        GamePanel gamePanel = new GamePanel(this, levelFile, difficulty);
         this.add(gamePanel);
         this.pack();
         this.revalidate();

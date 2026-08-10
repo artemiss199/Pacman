@@ -9,8 +9,9 @@ public class Ghost extends MovableObject {
     private final int startX;
     private final int startY;
     private final Pacman target;
+    private int mistakeChance;
 
-    public Ghost(int x, int y, String color, Pacman target) {
+    public Ghost(int x, int y, String color, Pacman target, String difficulty) {
         super(x, y, 1);
         this.startX = x;
         this.startY = y;
@@ -18,6 +19,19 @@ public class Ghost extends MovableObject {
         this.state = GhostState.CHASE;
         this.random = new Random();
         this.target = target;
+
+        // Set the nerf based on what the player chose!
+        if (difficulty.equals("Easy")) {
+            this.mistakeChance = 60; // 60% chance to act dumb
+        } else if (difficulty.equals("Normal")) {
+            this.mistakeChance = 25; // 25% chance to act dumb
+        } else if (difficulty.equals("Hard")) {
+            this.mistakeChance = 0;  // 0% chance (Terminator mode!)
+        } else {
+            this.mistakeChance = 25; // Fallback
+        }
+
+
     }
 
     public void setNormal() {
@@ -38,7 +52,13 @@ public class Ghost extends MovableObject {
     public void update(Maze maze, ScoreManager scoreManager) {
         // Requirement 14: AI Implementation
         if (state == GhostState.CHASE) {
-            calculateAStarPath(maze); // Seek Pacman
+
+            if (random.nextInt(100) < mistakeChance) {
+                calculateRandomPath(maze); // Act dumb
+            } else {
+                calculateAStarPath(maze); // Seek Pacman
+            }
+
         } else if (state == GhostState.FRIGHTENED) {
             calculateRandomPath(maze); // Run away
         }

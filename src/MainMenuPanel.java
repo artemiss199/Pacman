@@ -22,12 +22,22 @@ public class MainMenuPanel extends JPanel {
         gbc.gridy = 0;
         this.add(titleLabel, gbc);
 
-        // --- NEW: LEVEL SELECTOR DROPDOWN ---
+        // Level Selector
         String[] levels = {"level1.txt", "level2.txt"}; // Add more files here as you make them!
         JComboBox<String> levelSelector = new JComboBox<>(levels);
         levelSelector.setFont(new Font("Arial", Font.BOLD, 20));
         gbc.gridy = 1;
         this.add(levelSelector, gbc);
+
+
+        // Difficulty Selector
+        String[] difficulties = {"Easy", "Normal", "Hard"};
+        JComboBox<String> diffSelector = new JComboBox<>(difficulties);
+        diffSelector.setFont(new Font("Arial", Font.BOLD, 20));
+        diffSelector.setSelectedItem("Normal"); // Default to Normal
+        gbc.gridy = 2;
+        this.add(diffSelector, gbc);
+
 
         // 2. Start Game Button
         JButton startButton = new JButton("Start Game");
@@ -41,11 +51,12 @@ public class MainMenuPanel extends JPanel {
             public void actionPerformed(ActionEvent e) {
                 // Get the string that the user selected in the dropdown
                 String selectedLevel = (String) levelSelector.getSelectedItem();
+                String selectedDiff = (String) diffSelector.getSelectedItem();
                 // Pass it to the window!
-                window.startGame(selectedLevel);
+                window.startGame(selectedLevel, selectedDiff);
             }
         });
-        gbc.gridy = 2;
+        gbc.gridy = 3;
         this.add(startButton, gbc);
 
         // 3. Exit Button

@@ -23,11 +23,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private final int TILE_SIZE = 32; // Size of each grid square in pixels
     private final GameWindow window;
     private String currentLevelFile;
+    private String currentDifficulty;
+
 
     // Construcctor
-    public GamePanel(GameWindow window,String levelFile) {
+    public GamePanel(GameWindow window,String levelFile, String difficulty) {
         this.window = window;
         this.currentLevelFile = levelFile;
+        this.currentDifficulty = difficulty;
 
         this.setFocusable(true); // Allows the panel to receive keyboard input
         this.setBackground(Color.BLACK);
@@ -35,7 +38,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         loadImages();
 
-        this.game = new Game(levelFile);
+        this.game = new Game(currentLevelFile, currentDifficulty);
         this.timer = new Timer(150, this);
         this.timer.start();
         updateWindowSize();
@@ -181,7 +184,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         else if (key == KeyEvent.VK_R) {
             // restart the game by  overwriting the old game object with a new one
-            this.game = new Game(currentLevelFile);
+            this.game = new Game(currentLevelFile, currentDifficulty);
             updateWindowSize();
         }
 

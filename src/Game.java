@@ -12,14 +12,14 @@ public class Game {
     private boolean isGameOver;
     private int powerPelletTimer = 0;
     private int currentLevel;
-    public Game(String levelFile) {
+    public Game(String levelFile, String difficulty) {
         maze = new Maze(levelFile);
         scoreManager = new ScoreManager();
         soundManager = new SoundManager();
         ghosts = new ArrayList<>();
         pacman = new Pacman(1, 1);
-        ghosts.add(new Ghost(10, 10, "RED", pacman));
-        ghosts.add(new Ghost(11, 10, "PINK", pacman));
+        ghosts.add(new Ghost(10, 10, "RED", pacman, difficulty));
+        ghosts.add(new Ghost(11, 10, "PINK", pacman, difficulty));
         isGameOver = false;
         soundManager.playSound("beginning");
         this.currentLevel = 1;
@@ -27,6 +27,7 @@ public class Game {
         while (matcher.find()) {
             this.currentLevel = Integer.parseInt(matcher.group());
         }
+
     }
 
     public void tick() {
