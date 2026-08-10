@@ -18,8 +18,8 @@ public class Game {
         soundManager = new SoundManager();
         ghosts = new ArrayList<>();
         pacman = new Pacman(1, 1);
-        ghosts.add(new Ghost(10, 10, "RED"));
-        ghosts.add(new Ghost(11, 10, "PINK"));
+        ghosts.add(new Ghost(10, 10, "RED",pacman));
+        ghosts.add(new Ghost(11, 10, "PINK",pacman));
         isGameOver = false;
         soundManager.playSound("beginning");
         this.currentLevel = 1;
