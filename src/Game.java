@@ -7,6 +7,8 @@ public class Game {
     private List<Ghost> ghosts;
     private ScoreManager scoreManager;
     private boolean isGameOver;
+    private int powerPelletTimer = 0;
+
 
     public Game(String levelFile) {
         maze = new Maze(levelFile);
@@ -28,7 +30,16 @@ public class Game {
         }
 
         // 2. Check Collisions (Requirement 7)
-        checkCollisions();
+        checkCollisions(); // updates powerPelletTimer on collision with powerPellet
+
+        if (powerPelletTimer > 0) {
+            powerPelletTimer--;
+            if (powerPelletTimer == 0) {
+                for (Ghost g : ghosts) {
+                    g.setNormal();
+                }
+            }
+        }
 
         // 3. Check Win Condition
         if (maze.getPellets().isEmpty()) {
@@ -50,6 +61,7 @@ public class Game {
 
                 if (p.isPowerPellet()) {
                     for (Ghost g : ghosts) g.setFrightened(); // Requirement 10
+                    powerPelletTimer = 40;
                 }
                 break; // Can only eat one per tick
             }
@@ -59,9 +71,15 @@ public class Game {
         // Pacman hits Ghost (Requirement 6a)
         for (Ghost g : ghosts) {
             if (g.getX() == pacman.getX() && g.getY() == pacman.getY()) {
-                System.out.println("GAME OVER! Ghost caught Pacman.");
-                scoreManager.checkAndSaveHighScore();
-                isGameOver = true;
+                if (g.getState() == GhostState.FRIGHTENED) {
+                    scoreManager.addScore(200);
+                    g.respawn();
+                } else {
+                    System.out.println("GAME OVER! Ghost caught Pacman.");
+                    scoreManager.checkAndSaveHighScore();
+                    isGameOver = true;
+                }
+
             }
         }
     }
