@@ -12,7 +12,7 @@ import java.awt.Image;
 
 // extends JPanel, implements interfaces for input and looping
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
-
+    private int lastRenderedLevel = 1;
     private Image blinkyImg, pinkyImg, frightenedImg;
     private Image dotImg, powerPelletImg;
     private Image[][] pacmanImgs; // 2D array: [direction][animation_frame]
@@ -22,19 +22,23 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private Timer timer;
     private final int TILE_SIZE = 32; // Size of each grid square in pixels
     private final GameWindow window;
+    private String currentLevelFile;
 
     // Construcctor
-    public GamePanel(GameWindow window) {
+    public GamePanel(GameWindow window,String levelFile) {
+        this.window = window;
+        this.currentLevelFile = levelFile;
+
         this.setFocusable(true); // Allows the panel to receive keyboard input
         this.setBackground(Color.BLACK);
         this.addKeyListener(this);
-        this.window = window;
 
         loadImages();
 
-        this.game = new Game("level1.txt");
+        this.game = new Game(levelFile);
         this.timer = new Timer(150, this);
         this.timer.start();
+        updateWindowSize();
     }
 
 
@@ -63,6 +67,19 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             System.out.println("Failed to load images. Check your folder paths!");
             e.printStackTrace();
         }
+    }
+
+    private void updateWindowSize() {
+        char[][] grid = game.getMaze().getGrid();
+        int mapWidth = grid[0].length * TILE_SIZE;
+        int mapHeight = grid.length * TILE_SIZE;
+
+        // Tell the panel how big it needs to be to fit the map
+        this.setPreferredSize(new Dimension(mapWidth, mapHeight));
+
+        // Tell the window to snap to this new size and re-center on the screen!
+        window.pack();
+        window.setLocationRelativeTo(null);
     }
 
     private int getDirIndex(Direction d) {
@@ -139,6 +156,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             game.tick();
             animTick++;
         }
+        if (game.getCurrentLevel() != lastRenderedLevel) {
+            lastRenderedLevel = game.getCurrentLevel();
+            updateWindowSize();
+        }
         repaint(); // Force paintComponent to run again with new coordinates
     }
 
@@ -160,7 +181,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         else if (key == KeyEvent.VK_R) {
             // restart the game by  overwriting the old game object with a new one
-            this.game = new Game("level1.txt");
+            this.game = new Game(currentLevelFile);
+            updateWindowSize();
         }
 
         else if (key == KeyEvent.VK_M) {
