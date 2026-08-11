@@ -12,6 +12,10 @@ public class Game {
     private boolean isGameOver;
     private int powerPelletTimer = 0;
     private int currentLevel;
+    private String difficulty;
+    private DeathTracker deathTracker;
+
+
     public Game(String levelFile, String difficulty) {
         maze = new Maze(levelFile);
         scoreManager = new ScoreManager();
@@ -27,7 +31,8 @@ public class Game {
         while (matcher.find()) {
             this.currentLevel = Integer.parseInt(matcher.group());
         }
-
+        this.difficulty = difficulty;
+        this.deathTracker = new DeathTracker();
     }
 
     public void tick() {
@@ -102,6 +107,7 @@ public class Game {
                     soundManager.playSound("death");
                     System.out.println("GAME OVER! Ghost caught Pacman.");
                     scoreManager.checkAndSaveHighScore();
+                    deathTracker.addDeath();
                     isGameOver = true;
                 }
 
@@ -132,6 +138,10 @@ public class Game {
     public int getCurrentLevel() {
         return this.currentLevel;
     }
+
+    public String getDifficulty() { return this.difficulty; }
+
+    public DeathTracker getDeathTracker() { return this.deathTracker; }
 
 
 }

@@ -20,6 +20,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
     private Game game;
     private Timer timer;
+    private StatsPanel statsPanel;
     private final int TILE_SIZE = 32; // Size of each grid square in pixels
     private final GameWindow window;
     private String currentLevelFile;
@@ -163,6 +164,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             lastRenderedLevel = game.getCurrentLevel();
             updateWindowSize();
         }
+
+        if (statsPanel != null) {
+            statsPanel.updateStats();
+        }
+
         repaint(); // Force paintComponent to run again with new coordinates
     }
 
@@ -192,7 +198,20 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             this.timer.stop();
             window.showMainMenu();
         }
+
+        if (statsPanel != null) {
+            statsPanel.setGame(this.game);
+        }
     }
+
+    public void setStatsPanel(StatsPanel statsPanel) {
+        this.statsPanel = statsPanel;
+    }
+
+    public Game getGame() {
+        return this.game;
+    }
+
     @Override
     public void keyTyped(KeyEvent e) {}
     @Override

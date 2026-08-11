@@ -35,5 +35,6 @@ public class ScoreManager {
         }
     }
 
+    public int getHighScore() { return highScore; }
 
 }

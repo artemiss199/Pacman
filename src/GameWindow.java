@@ -26,8 +26,12 @@ public class GameWindow extends JFrame {
 
     public void startGame(String levelFile, String difficulty) {
         this.getContentPane().removeAll();
+        this.setLayout(new java.awt.BorderLayout());
         GamePanel gamePanel = new GamePanel(this, levelFile, difficulty);
-        this.add(gamePanel);
+        this.add(gamePanel, java.awt.BorderLayout.CENTER);
+        StatsPanel statsPanel = new StatsPanel(gamePanel.getGame());
+        this.add(statsPanel, java.awt.BorderLayout.SOUTH);
+        gamePanel.setStatsPanel(statsPanel);
         this.pack();
         this.revalidate();
         this.repaint();
