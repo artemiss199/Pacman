@@ -14,7 +14,7 @@ public class Game {
     private int currentLevel;
     private String difficulty;
     private DeathTracker deathTracker;
-
+    private boolean isPaused = false;
 
     public Game(String levelFile, String difficulty) {
         maze = new Maze(levelFile);
@@ -80,7 +80,7 @@ public class Game {
     }
 
     public void tick() {
-        if (isGameOver) return;
+        if (isGameOver || isPaused) return;
 
         // 1. Update Entities
         pacman.update(maze, scoreManager);
@@ -187,5 +187,12 @@ public class Game {
 
     public DeathTracker getDeathTracker() { return this.deathTracker; }
 
+    public boolean isPaused() { return this.isPaused; }
+
+    public void togglePause() {
+        if (!isGameOver) {
+            this.isPaused = !this.isPaused;
+        }
+    }
 
 }

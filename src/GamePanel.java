@@ -25,7 +25,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private String currentLevelFile;
     private String currentDifficulty;
 
-    // --- NEW: Next Level Button ---
     private JButton nextLevelButton;
 
     public GamePanel(GameWindow window, String levelFile, String difficulty) {
@@ -33,7 +32,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         this.currentLevelFile = levelFile;
         this.currentDifficulty = difficulty;
 
-        // Allow absolute positioning so we can float a button in the center
         this.setLayout(null);
         this.setFocusable(true);
         this.setBackground(Color.BLACK);
@@ -43,7 +41,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         this.game = new Game(currentLevelFile, currentDifficulty);
 
-        setupNextLevelButton(); // Initialize the custom button
+        setupNextLevelButton();
 
         this.timer = new Timer(150, this);
         this.timer.start();
@@ -61,16 +59,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 BorderFactory.createEmptyBorder(10, 20, 10, 20)
         ));
         nextLevelButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
-        nextLevelButton.setVisible(false); // Hide it until they win!
+        nextLevelButton.setVisible(false);
 
-        // Compute the next level file dynamically
         nextLevelButton.addActionListener(e -> {
             int nextLvl = game.getCurrentLevel() + 1;
             String nextFile = "level" + nextLvl + ".txt";
             window.startGame(nextFile, currentDifficulty);
         });
 
-        // Hover effect for the button
         nextLevelButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -113,8 +109,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 }
             }
         } catch (Exception e) {
-            System.out.println("Failed to load images. Check your folder paths!");
-            e.printStackTrace();
+            System.out.println("Failed to load images.");
         }
     }
 
@@ -139,7 +134,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
-        // 1. Draw Map/Maze
         char[][] grid = game.getMaze().getGrid();
         for (int y = 0; y < grid.length; y++) {
             for (int x = 0; x < grid[y].length; x++) {
@@ -150,7 +144,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // 2. Draw Pellets
         for (Pellet p : game.getMaze().getPellets()) {
             if (p.isActive()) {
                 Image imgToDraw = p.isPowerPellet() ? powerPelletImg : dotImg;
@@ -159,7 +152,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // 3. Draw Pacman
         int dirIdx = getDirIndex(game.getPacman().getDirection());
         int frameIdx = animTick % 3;
 
@@ -168,11 +160,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 game.getPacman().getY() * TILE_SIZE,
                 TILE_SIZE, TILE_SIZE, null);
 
-        // 4. Draw Ghosts
         for (Ghost ghost : game.getGhosts()) {
             Image ghostImg = blinkyImg;
 
-            if (ghost.getState() == GhostState.FRIGHTENED) {
+            // --- UPDATED: Paint blue if they are frightened OR if the game is paused! ---
+            if (ghost.getState() == GhostState.FRIGHTENED || game.isPaused()) {
                 ghostImg = frightenedImg;
             } else {
                 String color = ghost.getColorName();
@@ -187,26 +179,21 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                     TILE_SIZE, TILE_SIZE, null);
         }
 
-        // --- NEW: ADVANCED GAME OVER / WIN RENDERING ---
+        FontMetrics fm;
+
         if (game.isGameOver()) {
-            // Check if it's a win (no pellets left) or a loss (ghost caught you)
             boolean won = game.getMaze().getPellets().isEmpty();
 
-            // Draw a semi-transparent black overlay for a cinematic effect!
             g.setColor(new Color(0, 0, 0, 180));
             g.fillRect(0, 0, getWidth(), getHeight());
 
-            FontMetrics fm; // Used to perfectly center text
-
             if (won) {
-                // VICTORY SCREEN
                 String title = "LEVEL CLEARED!";
                 g.setFont(FontManager.getFont(32f));
                 g.setColor(Color.GREEN);
                 fm = g.getFontMetrics();
                 g.drawString(title, (getWidth() - fm.stringWidth(title)) / 2, getHeight() / 2 - 40);
 
-                // Show and position the Next Level button perfectly in the middle
                 if (!nextLevelButton.isVisible()) {
                     int btnWidth = 250;
                     int btnHeight = 50;
@@ -214,7 +201,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                     nextLevelButton.setVisible(true);
                 }
             } else {
-                // WASTED SCREEN
                 String title = "WASTED";
                 g.setFont(FontManager.getFont(45f));
                 g.setColor(Color.RED);
@@ -231,8 +217,26 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 g.drawString(sub1, (getWidth() - fm.stringWidth(sub1)) / 2, getHeight() / 2 + 40);
                 g.drawString(sub2, (getWidth() - fm.stringWidth(sub2)) / 2, getHeight() / 2 + 70);
             }
-        } else {
-            // Only draw the top-left score if the game is actively running
+        }
+        // --- NEW: PAUSE OVERLAY ---
+        else if (game.isPaused()) {
+            // Draw a semi-transparent layer over everything so the text pops
+            g.setColor(new Color(0, 0, 0, 150));
+            g.fillRect(0, 0, getWidth(), getHeight());
+
+            String title = "PAUSED";
+            g.setFont(FontManager.getFont(40f));
+            g.setColor(Color.CYAN);
+            fm = g.getFontMetrics();
+            g.drawString(title, (getWidth() - fm.stringWidth(title)) / 2, getHeight() / 2 - 20);
+
+            String sub1 = "PRESS 'ESC' TO RESUME";
+            g.setFont(FontManager.getFont(14f));
+            g.setColor(Color.WHITE);
+            fm = g.getFontMetrics();
+            g.drawString(sub1, (getWidth() - fm.stringWidth(sub1)) / 2, getHeight() / 2 + 30);
+        }
+        else {
             g.setColor(Color.WHITE);
             g.setFont(FontManager.getFont(14f));
             g.drawString("Score: " + game.getScoreManager().getCurrentScore(), 10, 25);
@@ -243,7 +247,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         if (!game.isGameOver()) {
             game.tick();
-            animTick++;
+            // Stop animating Pac-Man's mouth when paused
+            if (!game.isPaused()) {
+                animTick++;
+            }
         }
         if (game.getCurrentLevel() != lastRenderedLevel) {
             lastRenderedLevel = game.getCurrentLevel();
@@ -260,25 +267,29 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
-        if (key == KeyEvent.VK_UP || key == KeyEvent.VK_W) {
-            game.getPacman().setNextDirection(Direction.UP);
-        } else if (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_S) {
-            game.getPacman().setNextDirection(Direction.DOWN);
-        } else if (key == KeyEvent.VK_LEFT || key == KeyEvent.VK_A) {
-            game.getPacman().setNextDirection(Direction.LEFT);
-        } else if (key == KeyEvent.VK_RIGHT || key == KeyEvent.VK_D) {
-            game.getPacman().setNextDirection(Direction.RIGHT);
-        } else if (key == KeyEvent.VK_ESCAPE) {
-            System.exit(0);
+
+        // --- UPDATED: ESCAPE NOW TOGGLES PAUSE ---
+        if (key == KeyEvent.VK_ESCAPE) {
+            game.togglePause();
+        }
+        // Only allow movement if the game isn't paused
+        else if (!game.isPaused()) {
+            if (key == KeyEvent.VK_UP || key == KeyEvent.VK_W) {
+                game.getPacman().setNextDirection(Direction.UP);
+            } else if (key == KeyEvent.VK_DOWN || key == KeyEvent.VK_S) {
+                game.getPacman().setNextDirection(Direction.DOWN);
+            } else if (key == KeyEvent.VK_LEFT || key == KeyEvent.VK_A) {
+                game.getPacman().setNextDirection(Direction.LEFT);
+            } else if (key == KeyEvent.VK_RIGHT || key == KeyEvent.VK_D) {
+                game.getPacman().setNextDirection(Direction.RIGHT);
+            }
         }
 
-        else if (key == KeyEvent.VK_R) {
+        if (key == KeyEvent.VK_R) {
             this.game = new Game(currentLevelFile, currentDifficulty);
-            nextLevelButton.setVisible(false); // Hide the button on restart!
+            nextLevelButton.setVisible(false);
             updateWindowSize();
-        }
-
-        else if (key == KeyEvent.VK_M) {
+        } else if (key == KeyEvent.VK_M) {
             this.timer.stop();
             window.showMainMenu();
         }
