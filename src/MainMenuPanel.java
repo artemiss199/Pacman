@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.*;
 
 public class MainMenuPanel extends JPanel {
@@ -11,12 +13,10 @@ public class MainMenuPanel extends JPanel {
     public MainMenuPanel(GameWindow window) {
         this.window = window;
         this.setBackground(Color.BLACK);
-
-        // 1. We just use a normal GridBagLayout for the main panel now
         this.setLayout(new GridBagLayout());
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.insets = new Insets(15, 10, 15, 10); // Slightly increased vertical spacing
         gbc.gridx = 0;
 
         // Title
@@ -29,7 +29,7 @@ public class MainMenuPanel extends JPanel {
         // Level Selector
         String[] levels = {"level1.txt", "level2.txt"};
         JComboBox<String> levelSelector = new JComboBox<>(levels);
-        levelSelector.setFont(FontManager.getFont(14f));
+        styleComboBox(levelSelector); // Apply custom retro styling!
         gbc.gridy = 1;
         this.add(levelSelector, gbc);
 
@@ -52,7 +52,7 @@ public class MainMenuPanel extends JPanel {
         // Difficulty Selector
         String[] difficulties = {"Easy", "Normal", "Hard"};
         JComboBox<String> diffSelector = new JComboBox<>(difficulties);
-        diffSelector.setFont(FontManager.getFont(14f));
+        styleComboBox(diffSelector); // Apply custom retro styling!
 
         if (window.getLastDifficulty() != null && !window.getLastDifficulty().equals("Normal")) {
             diffSelector.setSelectedItem(window.getLastDifficulty());
@@ -64,11 +64,8 @@ public class MainMenuPanel extends JPanel {
         this.add(diffSelector, gbc);
 
         // Start Game Button
-        JButton startButton = new JButton("Start Game");
-        startButton.setFont(FontManager.getFont(18f));
-        startButton.setBackground(Color.BLACK);
-        startButton.setForeground(Color.WHITE);
-        startButton.setFocusPainted(false);
+        JButton startButton = new JButton("START GAME");
+        styleButton(startButton); // Apply custom hover effects!
 
         startButton.addActionListener(new ActionListener() {
             @Override
@@ -82,11 +79,8 @@ public class MainMenuPanel extends JPanel {
         this.add(startButton, gbc);
 
         // Exit Button
-        JButton exitButton = new JButton("Exit");
-        exitButton.setFont(FontManager.getFont(18f));
-        exitButton.setBackground(Color.BLACK);
-        exitButton.setForeground(Color.WHITE);
-        exitButton.setFocusPainted(false);
+        JButton exitButton = new JButton("EXIT");
+        styleButton(exitButton); // Apply custom hover effects!
 
         exitButton.addActionListener(new ActionListener() {
             @Override
@@ -98,7 +92,6 @@ public class MainMenuPanel extends JPanel {
         this.add(exitButton, gbc);
 
         // --- THE SCALED GIF COMPONENT ---
-        // Instead of making it the background, it is now a dedicated video box!
         Image bgImage = new ImageIcon("Assets/main/video.gif").getImage();
         JPanel videoPanel = new JPanel() {
             @Override
@@ -107,12 +100,66 @@ public class MainMenuPanel extends JPanel {
                 g.drawImage(bgImage, 0, 0, 300, getHeight(), this);
             }
         };
-        // You can change these numbers to make the video bigger or smaller!
         videoPanel.setPreferredSize(new Dimension(450, 120));
         videoPanel.setBackground(Color.BLACK);
 
-        gbc.gridy = 5; // Put it directly below the Exit button
-        gbc.insets = new Insets(30, 10, 10, 10); // Add extra top padding so it doesn't touch the Exit button
+        gbc.gridy = 5;
+        gbc.insets = new Insets(30, 10, 10, 10);
         this.add(videoPanel, gbc);
+    }
+
+    // --- HELPER METHODS FOR RETRO UI STYLING ---
+
+    private void styleButton(JButton button) {
+        button.setFont(FontManager.getFont(18f));
+        button.setBackground(Color.BLACK);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        // Add a chunky retro border
+        button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.DARK_GRAY, 3),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20) // Internal padding
+        ));
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+
+        // Create a Hover Effect!
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setForeground(Color.YELLOW);
+                button.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(Color.YELLOW, 3), // Lights up yellow!
+                        BorderFactory.createEmptyBorder(10, 20, 10, 20)
+                ));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setForeground(Color.WHITE);
+                button.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(Color.DARK_GRAY, 3), // Goes back to dark gray
+                        BorderFactory.createEmptyBorder(10, 20, 10, 20)
+                ));
+            }
+        });
+    }
+
+    private void styleComboBox(JComboBox<String> comboBox) {
+        comboBox.setFont(FontManager.getFont(14f));
+        comboBox.setBackground(Color.BLACK);
+        comboBox.setForeground(Color.CYAN); // Cyan text looks very arcade-like
+        comboBox.setFocusable(false);
+        comboBox.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
+
+        // Custom renderer to paint the dropdown list black instead of standard white
+        comboBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                label.setBackground(isSelected ? Color.DARK_GRAY : Color.BLACK);
+                label.setForeground(isSelected ? Color.YELLOW : Color.CYAN);
+                label.setHorizontalAlignment(CENTER); // Center the text in the dropdown
+                return label;
+            }
+        });
     }
 }
