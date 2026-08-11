@@ -4,61 +4,105 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
-// to add assets
 import javax.imageio.ImageIO;
 import java.io.File;
-import java.awt.Image;
 
-// extends JPanel, implements interfaces for input and looping
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private int lastRenderedLevel = 1;
     private Image blinkyImg, pinkyImg, inkyImg, clydeImg, frightenedImg;
     private Image dotImg, powerPelletImg;
-    private Image[][] pacmanImgs; // 2D array: [direction][animation_frame]
-    private int animTick = 0; // Used to cycle through 1.png, 2.png, 3.png
+    private Image[][] pacmanImgs;
+    private int animTick = 0;
 
     private Game game;
     private Timer timer;
     private StatsPanel statsPanel;
-    private final int TILE_SIZE = 32; // Size of each grid square in pixels
+    private final int TILE_SIZE = 32;
     private final GameWindow window;
     private String currentLevelFile;
     private String currentDifficulty;
 
+    // --- NEW: Next Level Button ---
+    private JButton nextLevelButton;
 
-    // Construcctor
-    public GamePanel(GameWindow window,String levelFile, String difficulty) {
+    public GamePanel(GameWindow window, String levelFile, String difficulty) {
         this.window = window;
         this.currentLevelFile = levelFile;
         this.currentDifficulty = difficulty;
 
-        this.setFocusable(true); // Allows the panel to receive keyboard input
+        // Allow absolute positioning so we can float a button in the center
+        this.setLayout(null);
+        this.setFocusable(true);
         this.setBackground(Color.BLACK);
         this.addKeyListener(this);
 
         loadImages();
 
         this.game = new Game(currentLevelFile, currentDifficulty);
+
+        setupNextLevelButton(); // Initialize the custom button
+
         this.timer = new Timer(150, this);
         this.timer.start();
         updateWindowSize();
     }
 
+    private void setupNextLevelButton() {
+        nextLevelButton = new JButton("NEXT LEVEL");
+        nextLevelButton.setFont(FontManager.getFont(18f));
+        nextLevelButton.setBackground(Color.BLACK);
+        nextLevelButton.setForeground(Color.CYAN);
+        nextLevelButton.setFocusPainted(false);
+        nextLevelButton.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.CYAN, 3),
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)
+        ));
+        nextLevelButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        nextLevelButton.setVisible(false); // Hide it until they win!
+
+        // Compute the next level file dynamically
+        nextLevelButton.addActionListener(e -> {
+            int nextLvl = game.getCurrentLevel() + 1;
+            String nextFile = "level" + nextLvl + ".txt";
+            window.startGame(nextFile, currentDifficulty);
+        });
+
+        // Hover effect for the button
+        nextLevelButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                nextLevelButton.setForeground(Color.YELLOW);
+                nextLevelButton.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(Color.YELLOW, 3),
+                        BorderFactory.createEmptyBorder(10, 20, 10, 20)
+                ));
+            }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                nextLevelButton.setForeground(Color.CYAN);
+                nextLevelButton.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(Color.CYAN, 3),
+                        BorderFactory.createEmptyBorder(10, 20, 10, 20)
+                ));
+            }
+        });
+
+        this.add(nextLevelButton);
+    }
 
     private void loadImages() {
         try {
-            // Load Ghosts
             blinkyImg = ImageIO.read(new File("Assets/pacman-art/ghosts/blinky.png"));
             pinkyImg = ImageIO.read(new File("Assets/pacman-art/ghosts/pinky.png"));
             frightenedImg = ImageIO.read(new File("Assets/pacman-art/ghosts/blue_ghost.png"));
             inkyImg = ImageIO.read(new File("Assets/pacman-art/ghosts/inky.png"));
             clydeImg = ImageIO.read(new File("Assets/pacman-art/ghosts/clyde.png"));
-            // Load Items (Using Apple for Power Pellet)
             dotImg = ImageIO.read(new File("Assets/pacman-art/other/dot.png"));
             powerPelletImg = ImageIO.read(new File("Assets/pacman-art/other/apple.png"));
 
-            // Load Pac-Man Animation Frames (4 directions, 3 frames each)
             pacmanImgs = new Image[4][3];
             String[] dirs = {"up", "down", "left", "right"};
 
@@ -79,10 +123,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         int mapWidth = grid[0].length * TILE_SIZE;
         int mapHeight = grid.length * TILE_SIZE;
 
-        // Tell the panel how big it needs to be to fit the map
         this.setPreferredSize(new Dimension(mapWidth, mapHeight));
-
-        // Tell the window to snap to this new size and re-center on the screen!
         window.pack();
         window.setLocationRelativeTo(null);
     }
@@ -120,7 +161,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         // 3. Draw Pacman
         int dirIdx = getDirIndex(game.getPacman().getDirection());
-        int frameIdx = animTick % 3; // Loops between 0, 1, and 2
+        int frameIdx = animTick % 3;
 
         g.drawImage(pacmanImgs[dirIdx][frameIdx],
                 game.getPacman().getX() * TILE_SIZE,
@@ -129,7 +170,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         // 4. Draw Ghosts
         for (Ghost ghost : game.getGhosts()) {
-            Image ghostImg = blinkyImg; // Default
+            Image ghostImg = blinkyImg;
 
             if (ghost.getState() == GhostState.FRIGHTENED) {
                 ghostImg = frightenedImg;
@@ -146,18 +187,58 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                     TILE_SIZE, TILE_SIZE, null);
         }
 
-        g.setColor(Color.WHITE);
-        g.setFont(new Font("Arial", Font.BOLD, 18));
-        g.drawString("Score: " + game.getScoreManager().getCurrentScore(), 10, 20);
-
+        // --- NEW: ADVANCED GAME OVER / WIN RENDERING ---
         if (game.isGameOver()) {
-            g.setColor(Color.RED);
-            g.setFont(new Font("Arial", Font.BOLD, 40));
-            g.drawString("Wasted", 300, 200);
+            // Check if it's a win (no pellets left) or a loss (ghost caught you)
+            boolean won = game.getMaze().getPellets().isEmpty();
+
+            // Draw a semi-transparent black overlay for a cinematic effect!
+            g.setColor(new Color(0, 0, 0, 180));
+            g.fillRect(0, 0, getWidth(), getHeight());
+
+            FontMetrics fm; // Used to perfectly center text
+
+            if (won) {
+                // VICTORY SCREEN
+                String title = "LEVEL CLEARED!";
+                g.setFont(FontManager.getFont(32f));
+                g.setColor(Color.GREEN);
+                fm = g.getFontMetrics();
+                g.drawString(title, (getWidth() - fm.stringWidth(title)) / 2, getHeight() / 2 - 40);
+
+                // Show and position the Next Level button perfectly in the middle
+                if (!nextLevelButton.isVisible()) {
+                    int btnWidth = 250;
+                    int btnHeight = 50;
+                    nextLevelButton.setBounds((getWidth() - btnWidth) / 2, getHeight() / 2, btnWidth, btnHeight);
+                    nextLevelButton.setVisible(true);
+                }
+            } else {
+                // WASTED SCREEN
+                String title = "WASTED";
+                g.setFont(FontManager.getFont(45f));
+                g.setColor(Color.RED);
+                fm = g.getFontMetrics();
+                g.drawString(title, (getWidth() - fm.stringWidth(title)) / 2, getHeight() / 2 - 20);
+
+                String sub1 = "PRESS 'R' TO RESTART";
+                String sub2 = "PRESS 'M' FOR MENU";
+
+                g.setFont(FontManager.getFont(14f));
+                g.setColor(Color.WHITE);
+                fm = g.getFontMetrics();
+
+                g.drawString(sub1, (getWidth() - fm.stringWidth(sub1)) / 2, getHeight() / 2 + 40);
+                g.drawString(sub2, (getWidth() - fm.stringWidth(sub2)) / 2, getHeight() / 2 + 70);
+            }
+        } else {
+            // Only draw the top-left score if the game is actively running
+            g.setColor(Color.WHITE);
+            g.setFont(FontManager.getFont(14f));
+            g.drawString("Score: " + game.getScoreManager().getCurrentScore(), 10, 25);
         }
     }
 
-    // Loop
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!game.isGameOver()) {
@@ -173,10 +254,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             statsPanel.updateStats();
         }
 
-        repaint(); // Force paintComponent to run again with new coordinates
+        repaint();
     }
 
-    // Input (Requirement 3a)
     @Override
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
@@ -189,12 +269,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         } else if (key == KeyEvent.VK_RIGHT || key == KeyEvent.VK_D) {
             game.getPacman().setNextDirection(Direction.RIGHT);
         } else if (key == KeyEvent.VK_ESCAPE) {
-            System.exit(0); // Requirement 2b: Leaving the app
+            System.exit(0);
         }
 
         else if (key == KeyEvent.VK_R) {
-            // restart the game by  overwriting the old game object with a new one
             this.game = new Game(currentLevelFile, currentDifficulty);
+            nextLevelButton.setVisible(false); // Hide the button on restart!
             updateWindowSize();
         }
 
