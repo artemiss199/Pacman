@@ -4,6 +4,7 @@ import java.awt.*;
 public class StatsPanel extends JPanel {
     private JLabel scoreLabel, highScoreLabel, levelLabel, diffLabel, deathLabel;
     private Game game;
+    private FontMetrics fm;
 
     public StatsPanel(Game game) {
         this.game = game;
@@ -11,8 +12,7 @@ public class StatsPanel extends JPanel {
         this.setLayout(new GridLayout(1, 5, 10, 0));
         this.setPreferredSize(new Dimension(640, 40)); // 40 pixels tall
 
-        Font font = new Font("Arial", Font.BOLD, 16);
-
+        Font font = FontManager.getFont(10f);
         scoreLabel = new JLabel("", SwingConstants.CENTER);
         scoreLabel.setForeground(Color.WHITE);
         scoreLabel.setFont(font);

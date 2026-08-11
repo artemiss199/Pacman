@@ -11,28 +11,30 @@ public class MainMenuPanel extends JPanel {
     public MainMenuPanel(GameWindow window) {
         this.window = window;
         this.setBackground(Color.BLACK);
+
+        // 1. We just use a normal GridBagLayout for the main panel now
         this.setLayout(new GridBagLayout());
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(10, 10, 10, 10);
         gbc.gridx = 0;
 
-        // 1. Title
-        JLabel titleLabel = new JLabel("PAC-MAN OOP");
-        titleLabel.setFont(new Font("Arial", Font.BOLD, 50));
+        // Title
+        JLabel titleLabel = new JLabel("<html><span style='text-shadow: 2px 2px #000000;'>PAC-MAN OOP</span></html>");
+        titleLabel.setFont(FontManager.getFont(45f));
         titleLabel.setForeground(Color.YELLOW);
         gbc.gridy = 0;
         this.add(titleLabel, gbc);
 
         // Level Selector
-        String[] levels = {"level1.txt", "level2.txt"}; // Add more files here as you make them!
+        String[] levels = {"level1.txt", "level2.txt"};
         JComboBox<String> levelSelector = new JComboBox<>(levels);
-        levelSelector.setFont(new Font("Arial", Font.BOLD, 20));
+        levelSelector.setFont(FontManager.getFont(14f));
         gbc.gridy = 1;
         this.add(levelSelector, gbc);
 
-        // Difficulty
-        String savedDifficulty = "Normal"; // Default fallback
+        // Difficulty File IO
+        String savedDifficulty = "Normal";
         try {
             File file = new File(SETTINGS_FILE);
             if (file.exists()) {
@@ -50,16 +52,20 @@ public class MainMenuPanel extends JPanel {
         // Difficulty Selector
         String[] difficulties = {"Easy", "Normal", "Hard"};
         JComboBox<String> diffSelector = new JComboBox<>(difficulties);
-        diffSelector.setFont(new Font("Arial", Font.BOLD, 20));
-        diffSelector.setSelectedItem(savedDifficulty);
-        diffSelector.setSelectedItem(window.getLastDifficulty());
+        diffSelector.setFont(FontManager.getFont(14f));
+
+        if (window.getLastDifficulty() != null && !window.getLastDifficulty().equals("Normal")) {
+            diffSelector.setSelectedItem(window.getLastDifficulty());
+        } else {
+            diffSelector.setSelectedItem(savedDifficulty);
+        }
+
         gbc.gridy = 2;
         this.add(diffSelector, gbc);
 
-
-        // 2. Start Game Button
+        // Start Game Button
         JButton startButton = new JButton("Start Game");
-        startButton.setFont(new Font("Arial", Font.BOLD, 24));
+        startButton.setFont(FontManager.getFont(18f));
         startButton.setBackground(Color.BLACK);
         startButton.setForeground(Color.WHITE);
         startButton.setFocusPainted(false);
@@ -67,19 +73,17 @@ public class MainMenuPanel extends JPanel {
         startButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Get the string that the user selected in the dropdown
                 String selectedLevel = (String) levelSelector.getSelectedItem();
                 String selectedDiff = (String) diffSelector.getSelectedItem();
-                // Pass it to the window!
                 window.startGame(selectedLevel, selectedDiff);
             }
         });
         gbc.gridy = 3;
         this.add(startButton, gbc);
 
-        // 3. Exit Button
+        // Exit Button
         JButton exitButton = new JButton("Exit");
-        exitButton.setFont(new Font("Arial", Font.BOLD, 24));
+        exitButton.setFont(FontManager.getFont(18f));
         exitButton.setBackground(Color.BLACK);
         exitButton.setForeground(Color.WHITE);
         exitButton.setFocusPainted(false);
@@ -90,7 +94,25 @@ public class MainMenuPanel extends JPanel {
                 System.exit(0);
             }
         });
-        gbc.gridy = 3;
+        gbc.gridy = 4;
         this.add(exitButton, gbc);
+
+        // --- THE SCALED GIF COMPONENT ---
+        // Instead of making it the background, it is now a dedicated video box!
+        Image bgImage = new ImageIcon("Assets/main/video.gif").getImage();
+        JPanel videoPanel = new JPanel() {
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(bgImage, 0, 0, 300, getHeight(), this);
+            }
+        };
+        // You can change these numbers to make the video bigger or smaller!
+        videoPanel.setPreferredSize(new Dimension(450, 120));
+        videoPanel.setBackground(Color.BLACK);
+
+        gbc.gridy = 5; // Put it directly below the Exit button
+        gbc.insets = new Insets(30, 10, 10, 10); // Add extra top padding so it doesn't touch the Exit button
+        this.add(videoPanel, gbc);
     }
 }
