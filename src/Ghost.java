@@ -22,9 +22,9 @@ public class Ghost extends MovableObject {
 
         // Set the nerf based on what the player chose!
         if (difficulty.equals("Easy")) {
-            this.mistakeChance = 60; // 60% chance to act dumb
+            this.mistakeChance = 90; // 60% chance to act dumb
         } else if (difficulty.equals("Normal")) {
-            this.mistakeChance = 25; // 25% chance to act dumb
+            this.mistakeChance = 60; // 25% chance to act dumb
         } else if (difficulty.equals("Hard")) {
             this.mistakeChance = 0;  // 0% chance (Terminator mode!)
         } else {

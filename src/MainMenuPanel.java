@@ -2,9 +2,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 
 public class MainMenuPanel extends JPanel {
     private GameWindow window;
+    private final String SETTINGS_FILE = "settings.txt";
 
     public MainMenuPanel(GameWindow window) {
         this.window = window;
@@ -29,12 +31,28 @@ public class MainMenuPanel extends JPanel {
         gbc.gridy = 1;
         this.add(levelSelector, gbc);
 
+        // Difficulty
+        String savedDifficulty = "Normal"; // Default fallback
+        try {
+            File file = new File(SETTINGS_FILE);
+            if (file.exists()) {
+                BufferedReader br = new BufferedReader(new FileReader(file));
+                String line = br.readLine();
+                if (line != null && !line.isEmpty()) {
+                    savedDifficulty = line;
+                }
+                br.close();
+            }
+        } catch (Exception e) {
+            System.out.println("No previous settings found, defaulting to Normal.");
+        }
 
         // Difficulty Selector
         String[] difficulties = {"Easy", "Normal", "Hard"};
         JComboBox<String> diffSelector = new JComboBox<>(difficulties);
         diffSelector.setFont(new Font("Arial", Font.BOLD, 20));
-        diffSelector.setSelectedItem("Normal"); // Default to Normal
+        diffSelector.setSelectedItem(savedDifficulty);
+        diffSelector.setSelectedItem(window.getLastDifficulty());
         gbc.gridy = 2;
         this.add(diffSelector, gbc);
 
