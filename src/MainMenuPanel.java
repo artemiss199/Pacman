@@ -5,6 +5,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class MainMenuPanel extends JPanel {
     private GameWindow window;
@@ -16,7 +19,7 @@ public class MainMenuPanel extends JPanel {
         this.setLayout(new GridBagLayout());
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(15, 10, 15, 10); // Slightly increased vertical spacing
+        gbc.insets = new Insets(15, 10, 15, 10);
         gbc.gridx = 0;
 
         // Title
@@ -26,12 +29,39 @@ public class MainMenuPanel extends JPanel {
         gbc.gridy = 0;
         this.add(titleLabel, gbc);
 
-        // Level Selector
-        String[] levels = {"level1.txt", "level2.txt"};
-        JComboBox<String> levelSelector = new JComboBox<>(levels);
-        styleComboBox(levelSelector); // Apply custom retro styling!
+        // --- NEW: DYNAMIC LEVEL SCANNING ---
+        File levelFolder = new File("levels");
+        List<String> levelList = new ArrayList<>();
+
+        if (levelFolder.exists() && levelFolder.isDirectory()) {
+            // Find all files ending in .txt
+            File[] txtFiles = levelFolder.listFiles((dir, name) -> name.toLowerCase().endsWith(".txt"));
+            if (txtFiles != null) {
+                for (File f : txtFiles) {
+                    levelList.add(f.getName()); // Add just the file name (e.g., "level1.txt")
+                }
+            }
+        }
+
+        // Safe fallback just in case the folder is missing or empty
+        if (levelList.isEmpty()) {
+            levelList.add("level1.txt");
+        }
+
+        // Sort the files alphabetically so level1 comes before level2
+        Collections.sort(levelList);
+
+        JComboBox<String> levelSelector = new JComboBox<>(levelList.toArray(new String[0]));
+        styleComboBox(levelSelector);
+
+        // Remember the last played level if it still exists in the folder
+        if (window.getLastLevel() != null && levelList.contains(window.getLastLevel())) {
+            levelSelector.setSelectedItem(window.getLastLevel());
+        }
+
         gbc.gridy = 1;
         this.add(levelSelector, gbc);
+        // ------------------------------------
 
         // Difficulty File IO
         String savedDifficulty = "Normal";
@@ -52,7 +82,7 @@ public class MainMenuPanel extends JPanel {
         // Difficulty Selector
         String[] difficulties = {"Easy", "Normal", "Hard"};
         JComboBox<String> diffSelector = new JComboBox<>(difficulties);
-        styleComboBox(diffSelector); // Apply custom retro styling!
+        styleComboBox(diffSelector);
 
         if (window.getLastDifficulty() != null && !window.getLastDifficulty().equals("Normal")) {
             diffSelector.setSelectedItem(window.getLastDifficulty());
@@ -65,7 +95,7 @@ public class MainMenuPanel extends JPanel {
 
         // Start Game Button
         JButton startButton = new JButton("START GAME");
-        styleButton(startButton); // Apply custom hover effects!
+        styleButton(startButton);
 
         startButton.addActionListener(new ActionListener() {
             @Override
@@ -80,7 +110,7 @@ public class MainMenuPanel extends JPanel {
 
         // Exit Button
         JButton exitButton = new JButton("EXIT");
-        styleButton(exitButton); // Apply custom hover effects!
+        styleButton(exitButton);
 
         exitButton.addActionListener(new ActionListener() {
             @Override
@@ -91,7 +121,7 @@ public class MainMenuPanel extends JPanel {
         gbc.gridy = 4;
         this.add(exitButton, gbc);
 
-        // --- THE SCALED GIF COMPONENT ---
+        // The Scaled GIF Component
         Image bgImage = new ImageIcon("Assets/main/video.gif").getImage();
         JPanel videoPanel = new JPanel() {
             @Override
@@ -108,27 +138,23 @@ public class MainMenuPanel extends JPanel {
         this.add(videoPanel, gbc);
     }
 
-    // --- HELPER METHODS FOR RETRO UI STYLING ---
-
     private void styleButton(JButton button) {
         button.setFont(FontManager.getFont(18f));
         button.setBackground(Color.BLACK);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
-        // Add a chunky retro border
         button.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(Color.DARK_GRAY, 3),
-                BorderFactory.createEmptyBorder(10, 20, 10, 20) // Internal padding
+                BorderFactory.createEmptyBorder(10, 20, 10, 20)
         ));
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
-        // Create a Hover Effect!
         button.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
                 button.setForeground(Color.YELLOW);
                 button.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(Color.YELLOW, 3), // Lights up yellow!
+                        BorderFactory.createLineBorder(Color.YELLOW, 3),
                         BorderFactory.createEmptyBorder(10, 20, 10, 20)
                 ));
             }
@@ -136,7 +162,7 @@ public class MainMenuPanel extends JPanel {
             public void mouseExited(MouseEvent e) {
                 button.setForeground(Color.WHITE);
                 button.setBorder(BorderFactory.createCompoundBorder(
-                        BorderFactory.createLineBorder(Color.DARK_GRAY, 3), // Goes back to dark gray
+                        BorderFactory.createLineBorder(Color.DARK_GRAY, 3),
                         BorderFactory.createEmptyBorder(10, 20, 10, 20)
                 ));
             }
@@ -146,18 +172,17 @@ public class MainMenuPanel extends JPanel {
     private void styleComboBox(JComboBox<String> comboBox) {
         comboBox.setFont(FontManager.getFont(14f));
         comboBox.setBackground(Color.BLACK);
-        comboBox.setForeground(Color.CYAN); // Cyan text looks very arcade-like
+        comboBox.setForeground(Color.CYAN);
         comboBox.setFocusable(false);
         comboBox.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY, 2));
 
-        // Custom renderer to paint the dropdown list black instead of standard white
         comboBox.setRenderer(new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 JLabel label = (JLabel) super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 label.setBackground(isSelected ? Color.DARK_GRAY : Color.BLACK);
                 label.setForeground(isSelected ? Color.YELLOW : Color.CYAN);
-                label.setHorizontalAlignment(CENTER); // Center the text in the dropdown
+                label.setHorizontalAlignment(CENTER);
                 return label;
             }
         });

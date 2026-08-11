@@ -39,7 +39,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         loadImages();
 
-        this.game = new Game(currentLevelFile, currentDifficulty);
+        // --- FIX: Point directly to the main "levels" folder ---
+        this.game = new Game("levels/" + currentLevelFile, currentDifficulty);
 
         setupNextLevelButton();
 
@@ -64,6 +65,14 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         nextLevelButton.addActionListener(e -> {
             int nextLvl = game.getCurrentLevel() + 1;
             String nextFile = "level" + nextLvl + ".txt";
+
+            // --- FIX: Check the main "levels" folder to see if the next map exists ---
+            File checkFile = new File("levels/" + nextFile);
+            if (!checkFile.exists()) {
+                System.out.println("Final level cleared! Wrapping back to level 1.");
+                nextFile = "level1.txt"; // Loop back to start if no more levels
+            }
+
             window.startGame(nextFile, currentDifficulty);
         });
 
@@ -163,7 +172,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         for (Ghost ghost : game.getGhosts()) {
             Image ghostImg = blinkyImg;
 
-            // --- UPDATED: Paint blue if they are frightened OR if the game is paused! ---
             if (ghost.getState() == GhostState.FRIGHTENED || game.isPaused()) {
                 ghostImg = frightenedImg;
             } else {
@@ -218,9 +226,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 g.drawString(sub2, (getWidth() - fm.stringWidth(sub2)) / 2, getHeight() / 2 + 70);
             }
         }
-        // --- NEW: PAUSE OVERLAY ---
         else if (game.isPaused()) {
-            // Draw a semi-transparent layer over everything so the text pops
             g.setColor(new Color(0, 0, 0, 150));
             g.fillRect(0, 0, getWidth(), getHeight());
 
@@ -247,7 +253,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     public void actionPerformed(ActionEvent e) {
         if (!game.isGameOver()) {
             game.tick();
-            // Stop animating Pac-Man's mouth when paused
             if (!game.isPaused()) {
                 animTick++;
             }
@@ -268,11 +273,9 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
 
-        // --- UPDATED: ESCAPE NOW TOGGLES PAUSE ---
         if (key == KeyEvent.VK_ESCAPE) {
             game.togglePause();
         }
-        // Only allow movement if the game isn't paused
         else if (!game.isPaused()) {
             if (key == KeyEvent.VK_UP || key == KeyEvent.VK_W) {
                 game.getPacman().setNextDirection(Direction.UP);
@@ -286,7 +289,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
 
         if (key == KeyEvent.VK_R) {
-            this.game = new Game(currentLevelFile, currentDifficulty);
+            // --- FIX: Include the main "levels" folder when restarting ---
+            this.game = new Game("levels/" + currentLevelFile, currentDifficulty);
             nextLevelButton.setVisible(false);
             updateWindowSize();
         } else if (key == KeyEvent.VK_M) {
