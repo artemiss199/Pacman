@@ -13,7 +13,7 @@ import java.awt.Image;
 // extends JPanel, implements interfaces for input and looping
 public class GamePanel extends JPanel implements ActionListener, KeyListener {
     private int lastRenderedLevel = 1;
-    private Image blinkyImg, pinkyImg, frightenedImg;
+    private Image blinkyImg, pinkyImg, inkyImg, clydeImg, frightenedImg;
     private Image dotImg, powerPelletImg;
     private Image[][] pacmanImgs; // 2D array: [direction][animation_frame]
     private int animTick = 0; // Used to cycle through 1.png, 2.png, 3.png
@@ -52,7 +52,8 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             blinkyImg = ImageIO.read(new File("Assets/pacman-art/ghosts/blinky.png"));
             pinkyImg = ImageIO.read(new File("Assets/pacman-art/ghosts/pinky.png"));
             frightenedImg = ImageIO.read(new File("Assets/pacman-art/ghosts/blue_ghost.png"));
-
+            inkyImg = ImageIO.read(new File("Assets/pacman-art/ghosts/inky.png"));
+            clydeImg = ImageIO.read(new File("Assets/pacman-art/ghosts/clyde.png"));
             // Load Items (Using Apple for Power Pellet)
             dotImg = ImageIO.read(new File("Assets/pacman-art/other/dot.png"));
             powerPelletImg = ImageIO.read(new File("Assets/pacman-art/other/apple.png"));
@@ -132,8 +133,11 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
             if (ghost.getState() == GhostState.FRIGHTENED) {
                 ghostImg = frightenedImg;
-            } else if (ghost.getColorName().equals("PINK")) {
-                ghostImg = pinkyImg;
+            } else {
+                String color = ghost.getColorName();
+                if (color.equals("PINK")) ghostImg = pinkyImg;
+                else if (color.equals("CYAN")) ghostImg = inkyImg;
+                else if (color.equals("ORANGE")) ghostImg = clydeImg;
             }
 
             g.drawImage(ghostImg,

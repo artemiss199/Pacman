@@ -22,17 +22,61 @@ public class Game {
         soundManager = new SoundManager();
         ghosts = new ArrayList<>();
         pacman = new Pacman(1, 1);
-        ghosts.add(new Ghost(10, 10, "RED", pacman, difficulty));
-        ghosts.add(new Ghost(11, 10, "PINK", pacman, difficulty));
-        isGameOver = false;
-        soundManager.playSound("beginning");
+
+        this.difficulty = difficulty;
+        this.deathTracker = new DeathTracker();
+
+
+        char[][] grid = maze.getGrid();
+
+        // place pacman
+        int pacStartX = 1;
+        int pacStartY = 1;
+
+        for (int y = 0; y < grid.length; y++) {
+            for (int x = 0; x < grid[y].length; x++) {
+                if (grid[y][x] == 'M') {
+                    pacStartX = x;
+                    pacStartY = y;
+                    grid[y][x] = ' '; // Clear the 'M' so it becomes an empty path
+                }
+            }
+        }
+        pacman = new Pacman(pacStartX, pacStartY);
+
+        // Place Ghost
+        for (int y = 0; y < grid.length; y++) {
+            for (int x = 0; x < grid[y].length; x++) {
+                char tile = grid[y][x];
+
+                // If we find a ghost letter, spawn it and clear the map tile!
+                if (tile == 'B') {
+                    ghosts.add(new Ghost(x, y, "RED", pacman, difficulty));
+                    grid[y][x] = ' '; // Turn it into an empty space
+                }
+                else if (tile == 'P') {
+                    ghosts.add(new Ghost(x, y, "PINK", pacman, difficulty));
+                    grid[y][x] = ' ';
+                }
+                else if (tile == 'I') {
+                    ghosts.add(new Ghost(x, y, "CYAN", pacman, difficulty));
+                    grid[y][x] = ' ';
+                }
+                else if (tile == 'C') {
+                    ghosts.add(new Ghost(x, y, "ORANGE", pacman, difficulty));
+                    grid[y][x] = ' ';
+                }
+            }
+        }
+
         this.currentLevel = 1;
         Matcher matcher = Pattern.compile("\\d+").matcher(levelFile);
         while (matcher.find()) {
             this.currentLevel = Integer.parseInt(matcher.group());
         }
-        this.difficulty = difficulty;
-        this.deathTracker = new DeathTracker();
+
+        isGameOver = false;
+        soundManager.playSound("beginning");
     }
 
     public void tick() {
