@@ -13,4 +13,7 @@ public abstract class GameObject {
     public int getY() { return y; }
     public boolean isActive() { return isActive; }
     public void setActive(boolean active) { this.isActive = active; }
+
+    // we should force every class extending this class to implement render
+    public abstract void render();
 }
