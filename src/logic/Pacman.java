@@ -1,3 +1,5 @@
+package logic;
+
 public class Pacman extends MovableObject {
     private Direction nextDirection;
 

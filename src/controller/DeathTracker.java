@@ -1,3 +1,5 @@
+package controller;
+
 import java.io.*;
 
 public class DeathTracker {

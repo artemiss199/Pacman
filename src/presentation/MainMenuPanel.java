@@ -1,3 +1,5 @@
+package presentation;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -89,7 +91,7 @@ public class MainMenuPanel extends JPanel {
         gbc.gridy = 2;
         this.add(diffSelector, gbc);
 
-        // Start Game Button
+        // Start logic.Game Button
         JButton startButton = new JButton("START GAME");
         styleButton(startButton);
 

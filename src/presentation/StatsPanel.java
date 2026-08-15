@@ -1,9 +1,12 @@
+package presentation;
+
 import javax.swing.*;
 import java.awt.*;
+import logic.Game;
 
 public class StatsPanel extends JPanel {
     private JLabel scoreLabel, highScoreLabel, levelLabel, diffLabel, deathLabel;
-    private Game game;
+    public Game game;
     private FontMetrics fm;
 
     public StatsPanel(Game game) {

@@ -1,3 +1,5 @@
+package logic;
+
 import java.util.*;
 
 public class Ghost extends MovableObject {
@@ -54,7 +56,7 @@ public class Ghost extends MovableObject {
             if (random.nextInt(100) < mistakeChance) {
                 calculateRandomPath(maze); // Act dumb and choose random path
             } else {
-                calculateAStarPath(maze); // Seek Pacman using A* algorithm
+                calculateAStarPath(maze); // Seek logic.Pacman using A* algorithm
             }
         } else if (state == GhostState.FRIGHTENED) {
             calculateRandomPath(maze); // Run away using random path selection for ease of catching
@@ -129,7 +131,7 @@ public class Ghost extends MovableObject {
         if (targetNode != null) {
             Node nextStep = targetNode;
 
-            // Backtrack until we find the node right after the Ghost's current position
+            // Backtrack until we find the node right after the logic.Ghost's current position
             while (nextStep.parent != null && nextStep.parent.parent != null) {
                 nextStep = nextStep.parent;
             }

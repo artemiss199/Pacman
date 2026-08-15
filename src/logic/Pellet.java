@@ -1,3 +1,5 @@
+package logic;
+
 public class Pellet extends GameObject {
     private boolean isPowerPellet;
 

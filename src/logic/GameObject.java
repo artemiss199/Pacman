@@ -1,3 +1,5 @@
+package logic;
+
 public abstract class GameObject {
     protected int x;
     protected int y;

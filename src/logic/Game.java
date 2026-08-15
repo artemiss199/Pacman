@@ -1,3 +1,8 @@
+package logic;
+
+import controller.DeathTracker;
+import presentation.SoundManager;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -44,7 +49,7 @@ public class Game {
         }
         pacman = new Pacman(pacStartX, pacStartY);
 
-        // Place Ghost
+        // Place logic.Ghost
         for (int y = 0; y < grid.length; y++) {
             for (int x = 0; x < grid[y].length; x++) {
                 char tile = grid[y][x];
@@ -134,7 +139,7 @@ public class Game {
     }
 
     private void checkGhostCollisions() {
-        // Pacman hits Ghost (Requirement 6a)
+        // logic.Pacman hits logic.Ghost (Requirement 6a)
         for (Ghost g : ghosts) {
             if (g.getX() == pacman.getX() && g.getY() == pacman.getY()) {
                 if (g.getState() == GhostState.FRIGHTENED) {
@@ -143,7 +148,7 @@ public class Game {
                     g.respawn();
                 } else {
                     soundManager.playSound("death");
-                    System.out.println("GAME OVER! Ghost caught Pacman.");
+                    System.out.println("GAME OVER! logic.Ghost caught Pacman.");
                     scoreManager.checkAndSaveHighScore();
                     deathTracker.addDeath();
                     isGameOver = true;

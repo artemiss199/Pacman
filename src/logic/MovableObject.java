@@ -1,3 +1,5 @@
+package logic;
+
 public abstract class MovableObject extends GameObject {
     protected int speed;
     protected Direction currentDirection;
