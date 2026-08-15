@@ -22,11 +22,11 @@ public class Ghost extends MovableObject {
 
         // Set the nerf based on what the player chose!
         if (difficulty.equals("Easy")) {
-            this.mistakeChance = 90; // 60% chance to act dumb
+            this.mistakeChance = 90; // 90% chance to act dumb (choose random path)
         } else if (difficulty.equals("Normal")) {
-            this.mistakeChance = 60; // 25% chance to act dumb
+            this.mistakeChance = 60; // 60% chance to act dumb
         } else if (difficulty.equals("Hard")) {
-            this.mistakeChance = 0;  // 0% chance (Terminator mode!)
+            this.mistakeChance = 0;  // 0% chance (Death mode!)
         } else {
             this.mistakeChance = 25; // Fallback
         }
@@ -50,25 +50,22 @@ public class Ghost extends MovableObject {
 
     @Override
     public void update(Maze maze, ScoreManager scoreManager) {
-        // Requirement 14: AI Implementation
         if (state == GhostState.CHASE) {
-
             if (random.nextInt(100) < mistakeChance) {
-                calculateRandomPath(maze); // Act dumb
+                calculateRandomPath(maze); // Act dumb and choose random path
             } else {
-                calculateAStarPath(maze); // Seek Pacman
+                calculateAStarPath(maze); // Seek Pacman using A* algorithm
             }
-
         } else if (state == GhostState.FRIGHTENED) {
-            calculateRandomPath(maze); // Run away
+            calculateRandomPath(maze); // Run away using random path selection for ease of catching
         }
     }
 
-    private class Node implements Comparable<Node> {
+    private class Node implements Comparable<Node> { // node for A* algorithm implementation
         int x, y;
         int gCost; // Steps taken from the start
         int hCost; // Manhattan distance to the target
-        Node parent; // Remembers the previous tile to trace the path back
+        Node parent; // for trace back
 
         public Node(int x, int y, int gCost, int hCost, Node parent) {
             this.x = x;
@@ -83,7 +80,6 @@ public class Ghost extends MovableObject {
         @Override
         public int compareTo(Node other) {
             int compare = Integer.compare(this.getFCost(), other.getFCost());
-            // If costs are equal, break the tie by choosing the one physically closer to Pac-Man
             if (compare == 0) return Integer.compare(this.hCost, other.hCost);
             return compare;
         }
@@ -92,29 +88,20 @@ public class Ghost extends MovableObject {
     private void calculateAStarPath(Maze maze) {
         int targetX = target.getX();
         int targetY = target.getY();
-
-        // 1. Use a HashSet instead of a 2D boolean array
         Set<String> closedList = new HashSet<>();
         PriorityQueue<Node> openList = new PriorityQueue<>();
-
         openList.add(new Node(this.x, this.y, 0, getManhattanDistance(this.x, this.y, targetX, targetY), null));
         Node targetNode = null;
         Direction oppositeDir = getOpposite(currentDirection);
 
-        // 2. Search Loop
         while (!openList.isEmpty()) {
             Node current = openList.poll();
-
-            // Did we find Pac-Man?
-            if (current.x == targetX && current.y == targetY) {
+            if (current.x == targetX && current.y == targetY) { // found pacman
                 targetNode = current;
                 break;
             }
 
-            // Generate a unique coordinate key "X,Y"
             String key = current.x + "," + current.y;
-
-            // Skip if already evaluated
             if (closedList.contains(key)) continue;
             closedList.add(key);
 
@@ -127,9 +114,7 @@ public class Ghost extends MovableObject {
                 int ny = current.y + directions[i][1];
                 Direction moveDir = dirs[i];
 
-                // Classic Rule: No U-turns on the very first move!
                 if (current.parent == null && moveDir == oppositeDir) continue;
-
                 String neighborKey = nx + "," + ny;
 
                 if (maze.isValidMove(nx, ny) && !closedList.contains(neighborKey)) {
@@ -140,7 +125,7 @@ public class Ghost extends MovableObject {
             }
         }
 
-        // 4. Execute the best move
+        // best move
         if (targetNode != null) {
             Node nextStep = targetNode;
 
@@ -149,7 +134,6 @@ public class Ghost extends MovableObject {
                 nextStep = nextStep.parent;
             }
 
-            // Turn the chosen node back into a directional movement
             if (nextStep.x > this.x) this.currentDirection = Direction.RIGHT;
             else if (nextStep.x < this.x) this.currentDirection = Direction.LEFT;
             else if (nextStep.y > this.y) this.currentDirection = Direction.DOWN;
@@ -158,8 +142,7 @@ public class Ghost extends MovableObject {
             this.x = nextStep.x;
             this.y = nextStep.y;
         } else {
-            // Fallback: If trapped or Pac-Man is entirely blocked by walls, just wander
-            calculateRandomPath(maze);
+            calculateRandomPath(maze); // for fallbakck
         }
     }
 

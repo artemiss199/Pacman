@@ -29,7 +29,7 @@ public class MainMenuPanel extends JPanel {
         gbc.gridy = 0;
         this.add(titleLabel, gbc);
 
-        // --- NEW: DYNAMIC LEVEL SCANNING ---
+        // Scanning levels folder for maps
         File levelFolder = new File("levels");
         List<String> levelList = new ArrayList<>();
 
@@ -43,25 +43,21 @@ public class MainMenuPanel extends JPanel {
             }
         }
 
-        // Safe fallback just in case the folder is missing or empty
         if (levelList.isEmpty()) {
             levelList.add("level1.txt");
         }
 
-        // Sort the files alphabetically so level1 comes before level2
+        // Sort the files based on level
         Collections.sort(levelList);
 
         JComboBox<String> levelSelector = new JComboBox<>(levelList.toArray(new String[0]));
         styleComboBox(levelSelector);
-
-        // Remember the last played level if it still exists in the folder
         if (window.getLastLevel() != null && levelList.contains(window.getLastLevel())) {
             levelSelector.setSelectedItem(window.getLastLevel());
         }
 
         gbc.gridy = 1;
         this.add(levelSelector, gbc);
-        // ------------------------------------
 
         // Difficulty File IO
         String savedDifficulty = "Normal";
@@ -121,7 +117,7 @@ public class MainMenuPanel extends JPanel {
         gbc.gridy = 4;
         this.add(exitButton, gbc);
 
-        // The Scaled GIF Component
+        // GIF
         Image bgImage = new ImageIcon("Assets/main/video.gif").getImage();
         JPanel videoPanel = new JPanel() {
             @Override

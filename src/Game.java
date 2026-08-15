@@ -81,18 +81,13 @@ public class Game {
 
     public void tick() {
         if (isGameOver || isPaused) return;
-
-        // 1. Update Entities
         pacman.update(maze, scoreManager);
-
         checkCollisions();
         if (isGameOver) return;
 
         for (Ghost ghost : ghosts) {
             ghost.update(maze, scoreManager);
         }
-
-        // 2. Check Collisions (Requirement 7)
         checkCollisions();// updates powerPelletTimer on collision with powerPellet
 
         if (powerPelletTimer > 0) {
@@ -104,7 +99,6 @@ public class Game {
             }
         }
 
-        // 3. Check Win Condition
         if (maze.getPellets().isEmpty()) {
             System.out.println("YOU WIN! All beans collected.");
             scoreManager.addScore(500); // Requirement 4e

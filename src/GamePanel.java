@@ -140,8 +140,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
-
-        // --- UPGRADED: Setup Graphics2D for smooth, thick neon lines ---
+        // we use G2D for better walls grahic
         Graphics2D g2d = (Graphics2D) g;
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
@@ -152,9 +151,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                     // 1. Draw the thick outer glow
                     g2d.setStroke(new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                     g2d.setColor(new Color(0, 0, 150)); // Dark Blue Glow
-                    drawNeonWall(g2d, x, y, grid);
-
-                    // 2. Draw the bright inner neon tube
+                    drawNeonWall(g2d, x, y, grid); // decides on shape
                     g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
                     g2d.setColor(new Color(50, 150, 255)); // Bright Cyan Core
                     drawNeonWall(g2d, x, y, grid);
@@ -162,7 +159,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // 2. Draw Pellets
+        // Draw Pellets
         for (Pellet p : game.getMaze().getPellets()) {
             if (p.isActive()) {
                 Image imgToDraw = p.isPowerPellet() ? powerPelletImg : dotImg;
@@ -171,16 +168,16 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
         }
 
-        // 3. Draw Pacman
+        // Draw Pacman
         int dirIdx = getDirIndex(game.getPacman().getDirection());
-        int frameIdx = animTick % 3;
+        int frameIdx = animTick % 3; // for mouth animation
 
         g.drawImage(pacmanImgs[dirIdx][frameIdx],
                 game.getPacman().getX() * TILE_SIZE,
                 game.getPacman().getY() * TILE_SIZE,
                 TILE_SIZE, TILE_SIZE, null);
 
-        // 4. Draw Ghosts
+        // Draw Ghosts
         for (Ghost ghost : game.getGhosts()) {
             Image ghostImg = blinkyImg;
 
@@ -260,13 +257,12 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             g.drawString("Score: " + game.getScoreManager().getCurrentScore(), 10, 25);
         }
     }
-
-    // --- NEW: Procedural Pipe Algorithm ---
+    // More beautiful wall using G2D
     private void drawNeonWall(Graphics2D g2d, int x, int y, char[][] grid) {
         int px = x * TILE_SIZE;
         int py = y * TILE_SIZE;
 
-        int margin = 8; // How hollow the wall is (distance from the tile edge)
+        int margin = 8;
         int size = TILE_SIZE;
 
         // Calculate the inner hollow rectangle bounds
@@ -283,7 +279,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         // Draw Top Edge
         if (!up) {
-            g2d.drawLine(x1, y1, x2, y1); // Cap it off
+            g2d.drawLine(x1, y1, x2, y1);
         } else {
             g2d.drawLine(x1, py, x1, y1); // Open up to connect upwards
             g2d.drawLine(x2, py, x2, y1);
@@ -291,25 +287,25 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         // Draw Bottom Edge
         if (!down) {
-            g2d.drawLine(x1, y2, x2, y2); // Cap it off
+            g2d.drawLine(x1, y2, x2, y2);
         } else {
-            g2d.drawLine(x1, y2, x1, py + size); // Open down to connect downwards
+            g2d.drawLine(x1, y2, x1, py + size);
             g2d.drawLine(x2, y2, x2, py + size);
         }
 
         // Draw Left Edge
         if (!left) {
-            g2d.drawLine(x1, y1, x1, y2); // Cap it off
+            g2d.drawLine(x1, y1, x1, y2);
         } else {
-            g2d.drawLine(px, y1, x1, y1); // Open left to connect leftwards
+            g2d.drawLine(px, y1, x1, y1);
             g2d.drawLine(px, y2, x1, y2);
         }
 
         // Draw Right Edge
         if (!right) {
-            g2d.drawLine(x2, y1, x2, y2); // Cap it off
+            g2d.drawLine(x2, y1, x2, y2);
         } else {
-            g2d.drawLine(x2, y1, px + size, y1); // Open right to connect rightwards
+            g2d.drawLine(x2, y1, px + size, y1);
             g2d.drawLine(x2, y2, px + size, y2);
         }
     }

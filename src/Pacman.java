@@ -6,9 +6,6 @@ public class Pacman extends MovableObject {
         this.nextDirection = Direction.NONE; // first fixed
     }
 
-    public void setNextDirection(Direction d) {
-        this.nextDirection = d;
-    }
 
     @Override
     public void update(Maze maze, ScoreManager scoreManager) {
@@ -19,7 +16,7 @@ public class Pacman extends MovableObject {
         int nextX = x;
         int nextY = y;
 
-        // Try to move in the user's requested direction
+        // using speed so that we may want to change it using difficulty later
         if (nextDirection == Direction.UP) nextY -= speed;
         else if (nextDirection == Direction.DOWN) nextY += speed;
         else if (nextDirection == Direction.LEFT) nextX -= speed;
@@ -33,7 +30,9 @@ public class Pacman extends MovableObject {
             scoreManager.addScore(-1);
         }
     }
-
+    public void setNextDirection(Direction d) {
+        this.nextDirection = d;
+    }
     @Override
     public void render() {
         System.out.print(" P "); // Replace Later for GUI

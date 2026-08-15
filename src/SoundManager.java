@@ -5,15 +5,12 @@ import java.util.HashMap;
 public class SoundManager {
     // Dictionary to hold all our preloaded sound effects
     private HashMap<String, Clip> clips;
-
     public SoundManager() {
         clips = new HashMap<>();
         loadAllSounds();
     }
-
     // load assets
     private void loadAllSounds() {
-        // Map a simple string name to the actual file path
         loadClip("beginning", "Assets/sfx/pacman_beginning.wav");
         loadClip("chomp", "Assets/sfx/pacman_chomp.wav");
         loadClip("death", "Assets/sfx/pacman_death.wav");

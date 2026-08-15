@@ -12,7 +12,6 @@ public class Maze {
     }
 
     private void loadMap(String filename) {
-        // 1 = Wall, 0 = Path/Pellet, 2 = PowerPellet
         try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
             List<String> lines = new ArrayList<>();
             String line;
@@ -44,7 +43,6 @@ public class Maze {
     }
 
     public List<Pellet> getPellets() { return pellets; }
-
     public char[][] getGrid() {
         return this.grid;
     }
