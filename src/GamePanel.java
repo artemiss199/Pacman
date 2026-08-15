@@ -39,7 +39,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
 
         loadImages();
 
-        // --- FIX: Point directly to the main "levels" folder ---
         this.game = new Game("levels/" + currentLevelFile, currentDifficulty);
 
         setupNextLevelButton();
@@ -66,11 +65,10 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             int nextLvl = game.getCurrentLevel() + 1;
             String nextFile = "level" + nextLvl + ".txt";
 
-            // --- FIX: Check the main "levels" folder to see if the next map exists ---
             File checkFile = new File("levels/" + nextFile);
             if (!checkFile.exists()) {
                 System.out.println("Final level cleared! Wrapping back to level 1.");
-                nextFile = "level1.txt"; // Loop back to start if no more levels
+                nextFile = "level1.txt";
             }
 
             window.startGame(nextFile, currentDifficulty);
@@ -143,16 +141,28 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
 
+        // --- UPGRADED: Setup Graphics2D for smooth, thick neon lines ---
+        Graphics2D g2d = (Graphics2D) g;
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
         char[][] grid = game.getMaze().getGrid();
         for (int y = 0; y < grid.length; y++) {
             for (int x = 0; x < grid[y].length; x++) {
                 if (grid[y][x] == '#') {
-                    g.setColor(Color.BLUE);
-                    g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+                    // 1. Draw the thick outer glow
+                    g2d.setStroke(new BasicStroke(5, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    g2d.setColor(new Color(0, 0, 150)); // Dark Blue Glow
+                    drawNeonWall(g2d, x, y, grid);
+
+                    // 2. Draw the bright inner neon tube
+                    g2d.setStroke(new BasicStroke(2, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
+                    g2d.setColor(new Color(50, 150, 255)); // Bright Cyan Core
+                    drawNeonWall(g2d, x, y, grid);
                 }
             }
         }
 
+        // 2. Draw Pellets
         for (Pellet p : game.getMaze().getPellets()) {
             if (p.isActive()) {
                 Image imgToDraw = p.isPowerPellet() ? powerPelletImg : dotImg;
@@ -161,6 +171,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
             }
         }
 
+        // 3. Draw Pacman
         int dirIdx = getDirIndex(game.getPacman().getDirection());
         int frameIdx = animTick % 3;
 
@@ -169,6 +180,7 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
                 game.getPacman().getY() * TILE_SIZE,
                 TILE_SIZE, TILE_SIZE, null);
 
+        // 4. Draw Ghosts
         for (Ghost ghost : game.getGhosts()) {
             Image ghostImg = blinkyImg;
 
@@ -249,6 +261,59 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
     }
 
+    // --- NEW: Procedural Pipe Algorithm ---
+    private void drawNeonWall(Graphics2D g2d, int x, int y, char[][] grid) {
+        int px = x * TILE_SIZE;
+        int py = y * TILE_SIZE;
+
+        int margin = 8; // How hollow the wall is (distance from the tile edge)
+        int size = TILE_SIZE;
+
+        // Calculate the inner hollow rectangle bounds
+        int x1 = px + margin;
+        int y1 = py + margin;
+        int x2 = px + size - margin;
+        int y2 = py + size - margin;
+
+        // Check neighboring tiles to see if they are also walls
+        boolean up = (y > 0 && grid[y - 1][x] == '#');
+        boolean down = (y < grid.length - 1 && grid[y + 1][x] == '#');
+        boolean left = (x > 0 && grid[y][x - 1] == '#');
+        boolean right = (x < grid[0].length - 1 && grid[y][x + 1] == '#');
+
+        // Draw Top Edge
+        if (!up) {
+            g2d.drawLine(x1, y1, x2, y1); // Cap it off
+        } else {
+            g2d.drawLine(x1, py, x1, y1); // Open up to connect upwards
+            g2d.drawLine(x2, py, x2, y1);
+        }
+
+        // Draw Bottom Edge
+        if (!down) {
+            g2d.drawLine(x1, y2, x2, y2); // Cap it off
+        } else {
+            g2d.drawLine(x1, y2, x1, py + size); // Open down to connect downwards
+            g2d.drawLine(x2, y2, x2, py + size);
+        }
+
+        // Draw Left Edge
+        if (!left) {
+            g2d.drawLine(x1, y1, x1, y2); // Cap it off
+        } else {
+            g2d.drawLine(px, y1, x1, y1); // Open left to connect leftwards
+            g2d.drawLine(px, y2, x1, y2);
+        }
+
+        // Draw Right Edge
+        if (!right) {
+            g2d.drawLine(x2, y1, x2, y2); // Cap it off
+        } else {
+            g2d.drawLine(x2, y1, px + size, y1); // Open right to connect rightwards
+            g2d.drawLine(x2, y2, px + size, y2);
+        }
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (!game.isGameOver()) {
@@ -289,7 +354,6 @@ public class GamePanel extends JPanel implements ActionListener, KeyListener {
         }
 
         if (key == KeyEvent.VK_R) {
-            // --- FIX: Include the main "levels" folder when restarting ---
             this.game = new Game("levels/" + currentLevelFile, currentDifficulty);
             nextLevelButton.setVisible(false);
             updateWindowSize();
